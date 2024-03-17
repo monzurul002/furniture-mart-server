@@ -34,14 +34,25 @@ async function run() {
         //get user specific furniture
         app.get("/furniture", async (req, res) => {
             const { category } = req.query;
+            const { sort } = req.query;
+            console.log(sort);
             const searchQuery = category.toLowerCase()
             const query = { category: searchQuery }
+
+            if (sort === "high") {
+                const result = await furnituresCollection.find(query).sort({ price: -1 }).toArray();
+                return res.send(result);
+            } else if (sort === "low") {
+                const result = await furnituresCollection.find(query).sort({ price: 1 }).toArray();
+                return res.send(result);
+            }
+
             const result = await furnituresCollection.find(query).toArray()
             res.send(result)
         })
         // furniture get by id
-        app.get("/furniture/:id", async (req, res) => {
-            const { id } = req.params.id;
+        app.get("/furniture/details/:id", async (req, res) => {
+            const { id } = req.params;
             const filter = { _id: new ObjectId(id) };
             const result = await furnituresCollection.findOne(filter);
             res.send(result);
