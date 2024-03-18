@@ -2,7 +2,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require("express");
 const app = express()
 const cors = require('cors')
-require("dotenv").config()
+require("dotenv").config();
+const jwt = require("jsonwebtoken")
 const port = process.env.PORT || 5000;
 app.use(cors())
 app.use(express.json())
@@ -30,7 +31,7 @@ async function run() {
         const furnituresCollection = client.db("furnitureMart").collection("allfurnitures")
         const orderCollection = client.db("furnitureMart").collection("orderCollection")
         const userCollection = client.db("furnitureMart").collection("users")
-
+        const showroomCollection = client.db("furnitureMart").collection("showrooms")
         //get user specific furniture
         app.get("/furniture", async (req, res) => {
             const { category } = req.query;
@@ -48,6 +49,11 @@ async function run() {
             }
 
             const result = await furnituresCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.get("/allfurnitures", async (req, res) => {
+            const result = await furnituresCollection.find().toArray();
             res.send(result)
         })
         // furniture get by id
@@ -92,6 +98,7 @@ async function run() {
         // post a user
         app.post("/users", async (req, res) => {
             const userInfo = req.body;
+            console.log(userInfo);
             const result = await userCollection.insertOne(userInfo);
             res.send(result)
         })
@@ -100,6 +107,24 @@ async function run() {
             res.send(result)
 
         })
+
+
+        //JWT implementaion
+        app.post("/jwt", async (req, res) => {
+            const userInfo = req.body;
+            const token = jwt.sign(userInfo, process.env.TOKEN_SECRET, { expiresIn: "2d" })
+            res.send(token)
+        })
+
+        //shwoworoom api
+        app.get("/showrooms/:division", async (req, res) => {
+            const { division } = req.params;
+            const query = { division }
+            console.log(query);
+            const result = await showroomCollection.findOne(query);
+            res.send(result)
+        })
+
 
 
         // Send a ping to confirm a successful connection
